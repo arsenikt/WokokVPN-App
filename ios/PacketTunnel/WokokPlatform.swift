@@ -134,8 +134,8 @@ final class WokokPlatform: NSObject, LibboxPlatformInterfaceProtocol {
 
     // MARK: Interface control
 
-    func usePlatformAutoDetectInterfaceControl() -> Bool { false }
-    func autoDetectInterfaceControl(_ fd: Int32) throws {}
+    func usePlatformAutoDetectControl() -> Bool { false }
+    func autoDetectControl(_ fd: Int32) throws {}
 
     // MARK: Connection owner (not available on iOS)
 
@@ -177,7 +177,7 @@ final class WokokPlatform: NSObject, LibboxPlatformInterfaceProtocol {
         semaphore.wait()
     }
 
-    private func onUpdate(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: NWPath) {
+    private func onUpdate(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
         if path.status == .unsatisfied || path.availableInterfaces.isEmpty {
             listener.updateDefaultInterface("", interfaceIndex: -1, isExpensive: false, isConstrained: false)
         } else {
@@ -252,14 +252,21 @@ final class WokokPlatform: NSObject, LibboxPlatformInterfaceProtocol {
 
 // MARK: async → sync bridge (libbox calls us synchronously)
 
+private final class ResultBox<V> {
+    var result: Result<V, Error>?
+}
+
 private func runBlocking<T>(_ block: @escaping () async throws -> T) throws -> T {
     let semaphore = DispatchSemaphore(value: 0)
-    final class Box<V> { var result: Result<V, Error>! }
-    let box = Box<T>()
+    let box = ResultBox<T>()
     Task.detached {
-        do { box.result = .success(try await block()) } catch { box.result = .failure(error) }
+        do {
+            box.result = .success(try await block())
+        } catch {
+            box.result = .failure(error)
+        }
         semaphore.signal()
     }
     semaphore.wait()
-    return try box.result.get()
+    return try box.result!.get()
 }
