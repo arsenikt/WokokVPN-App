@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
       - run: flutter build windows --release
       - name: Bundle sing-box core
         shell: pwsh
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '17' }
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
       - run: flutter build apk --release --split-per-abi
       - run: |
           mkdir out
@@ -70,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
       - run: flutter build macos --release
       - name: Bundle universal sing-box core
         run: |
@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
-        with: { channel: stable, cache: true }
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
       - run: flutter build ios --release --no-codesign
       - name: Unsigned IPA (for AltStore / Sideloadly)
         run: |
