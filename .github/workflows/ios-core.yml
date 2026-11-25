@@ -1,0 +1,40 @@
+name: iOS core
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['ios/**', 'tools/ios/**', 'tools/build_libbox_apple.sh', '.github/workflows/ios-core.yml']
+
+env:
+  SINGBOX_VERSION: 1.11.15
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: "3.29.3", channel: stable, cache: true }
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.23' }
+      - name: Cache Libbox
+        id: libbox
+        uses: actions/cache@v4
+        with:
+          path: ios/Frameworks/Libbox.xcframework
+          key: libbox-apple-${{ env.SINGBOX_VERSION }}-v1
+      - name: Build Libbox (sing-box core for iOS)
+        if: steps.libbox.outputs.cache-hit != 'true'
+        run: bash tools/build_libbox_apple.sh "$SINGBOX_VERSION"
+      - name: Add the Packet Tunnel extension target
+        run: ruby tools/ios/add_tunnel.rb
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Unsigned IPA
+        run: |
+          mkdir Payload && cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr WokokVPN-ios-unsigned.ipa Payload
+          ls Payload/Runner.app/PlugIns
+      - uses: actions/upload-artifact@v4
+        with: { name: wokok-ios-unsigned, path: WokokVPN-ios-unsigned.ipa }
