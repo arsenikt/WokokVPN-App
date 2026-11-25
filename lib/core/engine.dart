@@ -27,7 +27,7 @@ abstract class VpnEngine {
   Stream<void> get onUnexpectedExit;
 
   static VpnEngine forPlatform({int apiPort = 19090}) {
-    if (Platform.isAndroid || Platform.isIOS) return MobileEngine();
+    if (Platform.isAndroid || Platform.isIOS) return MobileEngine(apiPort: apiPort);
     return DesktopEngine(apiPort: apiPort);
   }
 }
@@ -177,19 +177,48 @@ class DesktopEngine implements VpnEngine {
   }
 }
 
-/// Android/iOS: talks to the native VpnService / Network Extension via a channel.
+/// Streams `{"up","down"}` samples from sing-box's Clash API, retrying while
+/// the core is still coming up. Ends when the listener cancels.
+Stream<TrafficSample> clashTrafficStream(int apiPort) async* {
+  final client = HttpClient();
+  try {
+    var attempts = 0;
+    while (attempts < 12) {
+      try {
+        final req = await client.getUrl(Uri.parse('http://127.0.0.1:$apiPort/traffic'));
+        final res = await req.close();
+        attempts = 0;
+        await for (final line in res.transform(utf8.decoder).transform(const LineSplitter())) {
+          if (line.isEmpty) continue;
+          final j = jsonDecode(line) as Map<String, dynamic>;
+          yield TrafficSample((j['up'] ?? 0) as int, (j['down'] ?? 0) as int);
+        }
+        return;
+      } on SocketException {
+        attempts++;
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      }
+    }
+  } finally {
+    client.close(force: true);
+  }
+}
+
+/// Android/iOS: talks to the native VpnService / Network Extension via channels.
+/// Android: `WokokVpnService` runs sing-box (libbox) in-process.
 class MobileEngine implements VpnEngine {
+  MobileEngine({this.apiPort = 19090});
+
+  final int apiPort;
   static const _method = MethodChannel('com.wokok.vpn/engine');
-  static const _events = EventChannel('com.wokok.vpn/traffic');
+  static const _events = EventChannel('com.wokok.vpn/events');
 
   @override
-  Stream<TrafficSample> get traffic => _events.receiveBroadcastStream().map((e) {
-        final m = Map<String, dynamic>.from(e as Map);
-        return TrafficSample((m['up'] ?? 0) as int, (m['down'] ?? 0) as int);
-      });
+  Stream<TrafficSample> get traffic => clashTrafficStream(apiPort);
 
   @override
-  Stream<void> get onUnexpectedExit => const Stream.empty();
+  Stream<void> get onUnexpectedExit =>
+      _events.receiveBroadcastStream().where((e) => e == 'stopped');
 
   @override
   Future<void> start(String configJson) async {

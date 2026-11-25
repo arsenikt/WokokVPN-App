@@ -24,7 +24,7 @@ android {
         applicationId = "com.wokok.wokok_vpn"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -41,4 +41,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // sing-box core (libbox.aar) is built by CI / tools/build_libbox.sh into app/libs
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 }
