@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  SINGBOX_VERSION: 1.11.15
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter build windows --release
+      - name: Bundle sing-box core
+        shell: pwsh
+        run: |
+          $out = "build/windows/x64/runner/Release/core"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          Invoke-WebRequest "https://github.com/SagerNet/sing-box/releases/download/v$env:SINGBOX_VERSION/sing-box-$env:SINGBOX_VERSION-windows-amd64.zip" -OutFile sb.zip
+          Expand-Archive sb.zip -DestinationPath sb
+          Copy-Item (Get-ChildItem sb -Recurse -Filter sing-box.exe).FullName $out
+          Copy-Item (Get-ChildItem sb -Recurse -Filter libcronet*.dll -ErrorAction SilentlyContinue).FullName $out -ErrorAction SilentlyContinue
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath WokokVPN-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: WokokVPN-windows-x64.zip }
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter build apk --release --split-per-abi
+      - run: |
+          mkdir out
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk out/WokokVPN-android-arm64.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk out/WokokVPN-android-armv7.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk out/WokokVPN-android-x86_64.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: android, path: out/* }
+
+  macos:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter build macos --release
+      - name: Bundle universal sing-box core
+        run: |
+          APP="build/macos/Build/Products/Release/wokok_vpn.app"
+          mkdir -p "$APP/Contents/Resources/core"
+          for a in arm64 amd64; do
+            curl -sL "https://github.com/SagerNet/sing-box/releases/download/v$SINGBOX_VERSION/sing-box-$SINGBOX_VERSION-darwin-$a.tar.gz" | tar xz
+            cp sing-box-$SINGBOX_VERSION-darwin-$a/sing-box "sb-$a"
+          done
+          lipo -create sb-arm64 sb-amd64 -output "$APP/Contents/Resources/core/sing-box"
+          chmod +x "$APP/Contents/Resources/core/sing-box"
+          # ad-hoc sign so the bundle is internally consistent
+          codesign --force --deep --sign - "$APP"
+      - name: DMG
+        run: |
+          mkdir dmg && cp -R build/macos/Build/Products/Release/wokok_vpn.app "dmg/Wokok VPN.app"
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname "Wokok VPN" -srcfolder dmg -ov -format UDZO WokokVPN-macos.dmg
+      - uses: actions/upload-artifact@v4
+        with: { name: macos, path: WokokVPN-macos.dmg }
+
+  ios:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter build ios --release --no-codesign
+      - name: Unsigned IPA (for AltStore / Sideloadly)
+        run: |
+          mkdir Payload && cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qr WokokVPN-ios-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with: { name: ios, path: WokokVPN-ios-unsigned.ipa }
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, android, macos, ios]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
