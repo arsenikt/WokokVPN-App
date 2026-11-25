@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- iOS core: Packet Tunnel extension running sing-box (libbox 1.11.15), Flutter bridge, extension target added by `tools/ios/add_tunnel.rb`. Builds in CI; needs your own signing with a paid Apple Developer account, not yet run on a device (see docs/IOS.md)
+- Hub website: screens, install guide per platform, release stats
+
 ## 1.0.0
 First public release.
 

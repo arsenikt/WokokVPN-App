@@ -104,7 +104,7 @@ Open **Kitchens** → **Scan QR** (or paste from the clipboard / pick a file) �
 | Windows | ✅ | ✅ sing-box sidecar | System proxy; TUN needs administrator rights |
 | macOS | ✅ | ✅ sing-box in `Resources/core` | Sandbox is off so the core can start; not notarized |
 | Android | ✅ | ✅ `VpnService` + `libbox` | Builds in CI; not yet tested on real devices, reports are welcome |
-| iOS | ✅ | 🚧 | Needs a Packet Tunnel (Network Extension), which requires a paid Apple Developer account |
+| iOS | ✅ | 🧪 Packet Tunnel + `Libbox` | Builds in CI, never run on a device. The tunnel only works with your own signing and a paid Apple Developer account, see [docs/IOS.md](docs/IOS.md) |
 
 ## 🛠 Build from source
 
@@ -147,7 +147,7 @@ Wokok is a tool for private access to your own server. Follow the laws of your c
 
 ## 🤝 Contributing
 
-PRs are welcome. Good first issues: translations, new recipes, the iOS Packet Tunnel, widget tests. If Wokok saved your evening, a ⭐ helps others find it.
+PRs are welcome. Good first issues: translations, new recipes, testing the iOS tunnel on a real device, widget tests. If Wokok saved your evening, a ⭐ helps others find it.
 
 ### 🥡 Buy the author a wok
 
