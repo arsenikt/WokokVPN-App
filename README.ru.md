@@ -68,7 +68,7 @@ curl -fsSL https://raw.githubusercontent.com/arsenikt/WokokVPN-Chrome/main/serve
 | 🪟 **Windows 10/11** | `WokokVPN-windows-x64.zip` | Распакуйте и запустите `wokok_vpn.exe`. SmartScreen может предупредить, сборки пока не подписаны. |
 | 🍎 **macOS** | `WokokVPN-macos.dmg` | Перетащите в «Программы». Первый запуск: правый клик → **Открыть**. |
 | 🤖 **Android 6+** | `WokokVPN-android-arm64.apk` (есть `armv7`, `x86_64`) | Разрешите установку из этого источника и откройте APK. |
-| 📱 **iOS** | `WokokVPN-ios-unsigned.ipa` | Через [AltStore](https://altstore.io) или [Sideloadly](https://sideloadly.io). Сборка без подписи Apple. |
+| 📱 **iOS** | `WokokVPN-ios-unsigned.ipa` | [AltStore](https://altstore.io): добавьте источник `https://github.com/arsenikt/WokokVPN-App/releases/latest/download/altstore-source.json`. Или поставьте IPA через [Sideloadly](https://sideloadly.io). Сборка без подписи Apple; для VPN нужна подпись с платным Apple Developer. |
 
 В каждом релизе есть `SHA256SUMS.txt`.
 

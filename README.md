@@ -68,7 +68,7 @@ About 30 seconds later you get a **`wokok://` ticket**, a **`vless://` link** an
 | 🪟 **Windows 10/11** | `WokokVPN-windows-x64.zip` | Unzip and run `wokok_vpn.exe`. SmartScreen may warn because builds are not code-signed yet. |
 | 🍎 **macOS** | `WokokVPN-macos.dmg` | Drag to Applications. First launch: right-click → **Open**. |
 | 🤖 **Android 6+** | `WokokVPN-android-arm64.apk` (also `armv7`, `x86_64`) | Allow installs from this source, then open the APK. |
-| 📱 **iOS** | `WokokVPN-ios-unsigned.ipa` | Install with [AltStore](https://altstore.io) or [Sideloadly](https://sideloadly.io). The build is not Apple-signed. |
+| 📱 **iOS** | `WokokVPN-ios-unsigned.ipa` | [AltStore](https://altstore.io): add the source `https://github.com/arsenikt/WokokVPN-App/releases/latest/download/altstore-source.json`. Or install the IPA with [Sideloadly](https://sideloadly.io). The build is not Apple-signed; the VPN needs a paid Apple Developer signature. |
 
 Every release ships a `SHA256SUMS.txt`.
 

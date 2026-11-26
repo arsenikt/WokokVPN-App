@@ -119,19 +119,24 @@ final class TunnelBridge: NSObject, FlutterStreamHandler {
   }
 
   private func start(config: String, result: @escaping FlutterResult) async {
+    var saved = false
     do {
       userStopped = false
       let m = try await loadManager()
       m.isEnabled = true
       try await m.saveToPreferences()
       try await m.loadFromPreferences()
+      saved = true
       manager = m
       try m.connection.startVPNTunnel(options: ["config": config as NSString])
       try await waitConnected(m.connection)
       DispatchQueue.main.async { result(nil) }
     } catch {
+      // A free Apple ID (AltStore, Sideloadly) cannot sign the Network Extension entitlement.
+      let hint = saved ? "" : ". iOS не разрешил создать VPN: нужна подпись с платным Apple Developer"
+      let message = error.localizedDescription + hint
       DispatchQueue.main.async {
-        result(FlutterError(code: "start_failed", message: error.localizedDescription, details: nil))
+        result(FlutterError(code: "start_failed", message: message, details: nil))
       }
     }
   }

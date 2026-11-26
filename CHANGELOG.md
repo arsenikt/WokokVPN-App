@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1] - 2026-11-26
+
+- iOS: added the camera and Face ID usage descriptions; without them iOS closes the app when it asks for access
+- iOS: AltStore source (`altstore-source.json`) is published with every release
+- iOS: a clear message when the signature does not allow a VPN
+
 ## [2.0.0] - 2026-11-26
 
 Wokok VPN is now **Wokok Box**.

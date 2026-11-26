@@ -127,8 +127,14 @@ jobs:
         run: |
           mkdir Payload && cp -R build/ios/iphoneos/Runner.app Payload/
           zip -qr WokokVPN-ios-unsigned.ipa Payload
+      - name: AltStore source
+        run: python3 tools/ios/altstore_source.py WokokVPN-ios-unsigned.ipa altstore-source.json "${{ github.ref_name }}"
       - uses: actions/upload-artifact@v4
-        with: { name: ios, path: WokokVPN-ios-unsigned.ipa }
+        with:
+          name: ios
+          path: |
+            WokokVPN-ios-unsigned.ipa
+            altstore-source.json
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')

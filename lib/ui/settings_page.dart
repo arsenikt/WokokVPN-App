@@ -152,7 +152,7 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const ListTile(
                   leading: Icon(Icons.info_outline_rounded, color: Wok.muted),
-                  title: Text('Wokok Box 2.0.0'),
+                  title: Text('Wokok Box 2.0.1'),
                   subtitle: Text('Ядро sing-box · без телеметрии · MIT'),
                 ),
               ]),
