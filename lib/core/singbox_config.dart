@@ -21,6 +21,7 @@ class ConfigOptions {
     this.selectedDomains = const [],
     this.proxyPort = 10808,
     this.apiPort = 19090,
+    this.blockedDomains = const [],
   });
 
   final Recipe recipe;
@@ -30,6 +31,9 @@ class ConfigOptions {
   final List<String> selectedDomains;
   final int proxyPort;
   final int apiPort;
+
+  /// Trackers under the Spy Check lid and scam sites caught by Guard.
+  final List<String> blockedDomains;
 }
 
 /// Builds a sing-box 1.11-style JSON config from a [Profile] and options.
@@ -78,6 +82,8 @@ class SingBoxConfig {
     final rules = <Map<String, dynamic>>[
       {'action': 'sniff'},
       {'protocol': 'dns', 'action': 'hijack-dns'},
+      if (o.blockedDomains.isNotEmpty)
+        {'domain_suffix': o.blockedDomains, 'action': 'reject'},
       {'ip_is_private': true, 'outbound': 'direct'},
     ];
     // Never tunnel the tunnel itself.
@@ -128,6 +134,8 @@ class SingBoxConfig {
         'rules': rules,
         'final': finalOutbound,
         'auto_detect_interface': true,
+        // lets Spy Check tell which app opened a connection
+        'find_process': true,
       },
       'experimental': {
         'clash_api': {'external_controller': '127.0.0.1:${o.apiPort}'},

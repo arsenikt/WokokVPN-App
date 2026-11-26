@@ -1,3 +1,4 @@
+import AVFoundation
 import Flutter
 import NetworkExtension
 import UIKit
@@ -5,6 +6,7 @@ import UIKit
 @main
 @objc class AppDelegate: FlutterAppDelegate {
   private var tunnel: TunnelBridge?
+  private let voice = AVSpeechSynthesizer()
 
   override func application(
     _ application: UIApplication,
@@ -13,6 +15,27 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
     if let controller = window?.rootViewController as? FlutterViewController {
       tunnel = TunnelBridge(messenger: controller.binaryMessenger)
+      let device = FlutterMethodChannel(
+        name: "com.wokok.box/device", binaryMessenger: controller.binaryMessenger)
+      device.setMethodCallHandler { [weak self] call, result in
+        guard let self else { return }
+        switch call.method {
+        case "speak":
+          let text = (call.arguments as? [String: Any])?["text"] as? String ?? ""
+          let utterance = AVSpeechUtterance(string: text)
+          if text.unicodeScalars.contains(where: { (0x0400...0x04FF).contains($0.value) }) {
+            utterance.voice = AVSpeechSynthesisVoice(language: "ru-RU")
+          }
+          self.voice.stopSpeaking(at: .immediate)
+          self.voice.speak(utterance)
+          result(true)
+        case "stop":
+          self.voice.stopSpeaking(at: .immediate)
+          result(nil)
+        default:
+          result(FlutterMethodNotImplemented)
+        }
+      }
     }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

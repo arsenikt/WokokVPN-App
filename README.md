@@ -2,7 +2,7 @@
 
 <img src="docs/img/logo.png" alt="Wokok VPN" width="160">
 
-# 🥡 Wokok VPN: apps
+# 🥡 Wokok Box: apps
 
 ### Your own unblockable VPN for Windows, macOS, Android and iOS: scan a ticket, tap the wok.
 
@@ -25,6 +25,8 @@
 <img src="docs/img/banner.jpg" alt="Wokok VPN on desktop and phone" width="100%">
 
 </div>
+
+> **Now Wokok Box.** Besides the VPN: **Tunnel** (your own ngrok), **Deploy** (your VPS without a terminal), **Spy Check** (who is watching you) and **Guard** (scam protection). See [docs/BOX.md](docs/BOX.md).
 
 ---
 

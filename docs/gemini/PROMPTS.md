@@ -40,3 +40,12 @@ python tools/import_gemini.py
 - Если Gemini добавил текст на картинку, перегенерируйте с пометкой "absolutely no text".
 - Для прозрачного фона попросите "solid pure green background" и удалите зелёный в любом редакторе.
 - Держите одного персонажа: всегда прикладывайте референс.
+
+## Wokok Box stickers
+
+Two sheets, cut by `python tools/import_box_art.py` (receive them with `python tools/receiver.py 8777`).
+
+**sheet-a** — square, strict 3x3 grid, large gaps, flat solid #00FF00 background, no shadows, text or frames, no green in the stickers; glossy 3D cartoon, orange/red/cream/charcoal, wok and noodle-box theme:
+open takeaway box with five floating compartments · delivery scooter with a box · chef with a wok · detective box with magnifier · box with a shield · wok on fire · globe wrapped in noodles · young person with headphones · grandparents with a phone.
+
+**sheet-b** — same style, 2x2 grid, flat #FF00FF background: robot chef bot · stern box showing STOP with a red alarm · suspicious box with an amber triangle · happy box with thumbs up and a green check.

@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../box/box_controller.dart';
 import '../core/vpn_controller.dart';
 import 'theme.dart';
 
 const siteUrl = 'https://arsenikt.github.io/WokokVPN';
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key, required this.vpn});
-  final VpnController vpn;
+  const SettingsPage({super.key, required this.box, required this.open});
+  final BoxController box;
+  final void Function(String id) open;
+  VpnController get vpn => box.vpn;
 
   Future<void> _toggleBiometric(BuildContext context, bool on) async {
     final m = ScaffoldMessenger.of(context);
@@ -48,7 +51,7 @@ class SettingsPage extends StatelessWidget {
       ),
     );
     if (yes == true) {
-      await vpn.extinguish();
+      await box.extinguish();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Всё затушено')));
       }
@@ -67,6 +70,38 @@ class SettingsPage extends StatelessWidget {
           return ListView(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             children: [
+              _group('VPN', [
+                ListTile(
+                  onTap: () => open('servers'),
+                  leading: const Icon(Icons.dns_rounded, color: Wok.fire),
+                  title: const Text('Кухни'),
+                  subtitle: const Text('Серверы и талоны'),
+                ),
+                ListTile(
+                  onTap: () => open('recipes'),
+                  leading: const Icon(Icons.restaurant_menu_rounded, color: Wok.fire),
+                  title: const Text('Рецепты'),
+                  subtitle: const Text('Что пускать через VPN'),
+                ),
+              ]),
+              _group('Коробка', [
+                ListTile(
+                  onTap: () => open('tunnel'),
+                  leading: const Icon(Icons.delivery_dining_rounded, color: Wok.gold),
+                  title: const Text('Tunnel'),
+                ),
+                ListTile(
+                  onTap: () => open('deploy'),
+                  leading: const Icon(Icons.rocket_launch_rounded, color: Wok.gold),
+                  title: const Text('Deploy'),
+                ),
+                ListTile(
+                  onTap: () => box.setAudience(Audience.parents),
+                  leading: const Icon(Icons.elderly_rounded, color: Wok.gold),
+                  title: const Text('Простой режим для родителей'),
+                  subtitle: const Text('Крупные кнопки. Выход: удерживать значок вверху'),
+                ),
+              ]),
               _group('Защита', [
                 SwitchListTile(
                   value: s.killSwitch,
@@ -112,12 +147,12 @@ class SettingsPage extends StatelessWidget {
                 ListTile(
                   onTap: () => launchUrl(Uri.parse(siteUrl)),
                   leading: const Icon(Icons.public_rounded, color: Wok.gold),
-                  title: const Text('Сайт Wokok VPN'),
+                  title: const Text('Сайт Wokok'),
                   subtitle: const Text('arsenikt.github.io/WokokVPN'),
                 ),
                 const ListTile(
                   leading: Icon(Icons.info_outline_rounded, color: Wok.muted),
-                  title: Text('Версия 1.0.0'),
+                  title: Text('Wokok Box 2.0.0'),
                   subtitle: Text('Ядро sing-box · без телеметрии · MIT'),
                 ),
               ]),

@@ -16,6 +16,9 @@ class Settings {
     this.selectedDomains = const [],
     this.activeProfileId,
     this.fullTunnel = false,
+    this.blockedDomains = const [],
+    this.shield = true,
+    this.shieldDomains = const [],
   });
 
   Recipe recipe;
@@ -26,6 +29,9 @@ class Settings {
   bool fullTunnel; // desktop: TUN instead of system proxy (needs admin)
   List<String> selectedDomains;
   String? activeProfileId;
+  List<String> blockedDomains; // Spy Check "lid"
+  bool shield; // Guard blocks scam sites while the VPN is on
+  List<String> shieldDomains;
 }
 
 /// Profiles live in secure storage (they contain keys); plain settings in prefs.
@@ -69,6 +75,9 @@ class Store {
     s.fullTunnel = _prefs.getBool('fullTunnel') ?? false;
     s.selectedDomains = _prefs.getStringList('selectedDomains') ?? [];
     s.activeProfileId = _prefs.getString('activeProfileId');
+    s.blockedDomains = _prefs.getStringList('blockedDomains') ?? [];
+    s.shield = _prefs.getBool('shield') ?? true;
+    s.shieldDomains = _prefs.getStringList('shieldDomains') ?? [];
     return s;
   }
 
@@ -80,6 +89,9 @@ class Store {
     await _prefs.setBool('autoConnect', s.autoConnect);
     await _prefs.setBool('fullTunnel', s.fullTunnel);
     await _prefs.setStringList('selectedDomains', s.selectedDomains);
+    await _prefs.setStringList('blockedDomains', s.blockedDomains);
+    await _prefs.setBool('shield', s.shield);
+    await _prefs.setStringList('shieldDomains', s.shieldDomains);
     if (s.activeProfileId == null) {
       await _prefs.remove('activeProfileId');
     } else {

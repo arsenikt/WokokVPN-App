@@ -121,6 +121,10 @@ class VpnController extends ChangeNotifier {
           killSwitch: settings.killSwitch,
           autoSwitch: settings.autoSwitch,
           selectedDomains: settings.selectedDomains,
+          blockedDomains: {
+            ...settings.blockedDomains,
+            if (settings.shield) ...settings.shieldDomains,
+          }.toList(),
         ),
       );
       await _engine.start(cfg);

@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/release
 # Built by tools/build_libbox_apple.sh (CI)
 ios/Frameworks/*.xcframework
+
+assets/gemini-raw/

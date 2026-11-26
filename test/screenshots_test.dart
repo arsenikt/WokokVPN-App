@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wokok_vpn/box/box_controller.dart';
 import 'package:wokok_vpn/core/engine.dart';
 import 'package:wokok_vpn/core/profile.dart';
 import 'package:wokok_vpn/core/recipes.dart';
@@ -70,6 +72,9 @@ void main() {
     tester.view.physicalSize = size * 2;
     tester.view.devicePixelRatio = 2;
     final vpn = (await tester.runAsync(() => makeVpn(on: on)))!;
+    final box = (await tester.runAsync(() async => BoxController(
+        vpn, await SharedPreferences.getInstance(), const FlutterSecureStorage())))!;
+    box.audience = Audience.me;
     final key = GlobalKey();
     final base = wokTheme();
     await tester.pumpWidget(RepaintBoundary(
@@ -77,14 +82,23 @@ void main() {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: base.copyWith(textTheme: base.textTheme.apply(fontFamily: 'Segoe')),
-        home: Shell(vpn: vpn),
+        home: Shell(box: box),
       ),
     ));
     await tester.pump(const Duration(milliseconds: 300));
+    if (on && tab == null) {
+      await tester.tap(find.text('VPN').first);
+      await tester.pump(const Duration(milliseconds: 400));
+    }
     if (tab != null) {
       await tester.tap(find.text(tab).first);
       await tester.pump(const Duration(milliseconds: 400));
     }
+    await tester.runAsync(() async {
+      for (final e in find.byType(Image).evaluate()) {
+        await precacheImage((e.widget as Image).image, e);
+      }
+    });
     // let the wok finish heating up and sit mid-toss for a nice frame
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pump(const Duration(milliseconds: 1480));
@@ -110,7 +124,10 @@ void main() {
     await shot(tester, name: 'desktop-recipes', size: const Size(980, 640), on: true, tab: 'Рецепты');
     await shot(tester, name: 'phone-home', size: const Size(390, 800), on: true);
     await shot(tester, name: 'phone-off', size: const Size(390, 800), on: false);
-    await shot(tester, name: 'phone-servers', size: const Size(390, 800), on: true, tab: 'Кухни');
+    await shot(tester, name: 'desktop-box', size: const Size(980, 720), on: false, tab: 'Коробка');
+    await shot(tester, name: 'phone-box', size: const Size(390, 800), on: false, tab: 'Коробка');
+    await shot(tester, name: 'phone-guard', size: const Size(390, 800), on: false, tab: 'Guard');
+    await shot(tester, name: 'desktop-servers', size: const Size(980, 640), on: true, tab: 'Кухни');
     await shot(tester, name: 'phone-settings', size: const Size(390, 800), on: true, tab: 'Настройки');
   }, skip: !run);
 }

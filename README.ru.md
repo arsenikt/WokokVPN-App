@@ -2,7 +2,7 @@
 
 <img src="docs/img/logo.png" alt="Wokok VPN" width="160">
 
-# 🥡 Wokok VPN: приложения
+# 🥡 Wokok Box: приложения
 
 ### Свой неблокируемый VPN для Windows, macOS, Android и iOS: отсканируйте талон и нажмите на вок.
 
@@ -25,6 +25,8 @@
 <img src="docs/img/banner.jpg" alt="Wokok VPN на компьютере и телефоне" width="100%">
 
 </div>
+
+> **Теперь это Wokok Box.** Кроме VPN: **Tunnel** (свой ngrok), **Deploy** (ваш VPS без терминала), **Spy Check** (кто за вами следит) и **Guard** (защита от мошенников). Подробности: [docs/BOX.md](docs/BOX.md).
 
 ---
 

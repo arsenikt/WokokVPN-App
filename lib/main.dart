@@ -5,8 +5,12 @@ import 'package:local_auth/local_auth.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'box/box_controller.dart';
+import 'box/device.dart';
 import 'core/vpn_controller.dart';
 import 'data/store.dart';
+import 'ui/box/guard_page.dart';
+import 'ui/box/parents.dart';
 import 'ui/shell.dart';
 import 'ui/theme.dart';
 
@@ -21,7 +25,7 @@ Future<void> main() async {
         size: Size(980, 680),
         minimumSize: Size(380, 600),
         center: true,
-        title: 'Wokok VPN',
+        title: 'Wokok Box',
         titleBarStyle: TitleBarStyle.normal,
         backgroundColor: Wok.bg,
       ),
@@ -34,12 +38,12 @@ Future<void> main() async {
   }
   final vpn = VpnController(await Store.open());
   await vpn.load();
-  runApp(WokokApp(vpn: vpn));
+  runApp(WokokApp(box: await BoxController.open(vpn)));
 }
 
 class WokokApp extends StatefulWidget {
-  const WokokApp({super.key, required this.vpn});
-  final VpnController vpn;
+  const WokokApp({super.key, required this.box});
+  final BoxController box;
 
   @override
   State<WokokApp> createState() => _WokokAppState();
@@ -48,20 +52,23 @@ class WokokApp extends StatefulWidget {
 class _WokokAppState extends State<WokokApp>
     with WindowListener, TrayListener, WidgetsBindingObserver {
   bool _locked = false;
+  String? _shared;
+  VpnController get _vpn => widget.box.vpn;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _locked = widget.vpn.settings.biometric;
+    _locked = _vpn.settings.biometric;
     if (_locked) _unlock();
     if (_desktop) {
       windowManager.addListener(this);
       trayManager.addListener(this);
       _initTray();
     }
-    widget.vpn.addListener(_refreshTray);
-    if (widget.vpn.settings.autoConnect) widget.vpn.connect();
+    _vpn.addListener(_refreshTray);
+    if (_vpn.settings.autoConnect) _vpn.connect();
+    Device.listenShared((text) => setState(() => _shared = text));
   }
 
   Future<void> _initTray() async {
@@ -75,10 +82,10 @@ class _WokokAppState extends State<WokokApp>
 
   Future<void> _refreshTray() async {
     if (!_desktop) return;
-    final on = widget.vpn.state == VpnState.on;
+    final on = _vpn.state == VpnState.on;
     try {
       await trayManager
-          .setToolTip(on ? 'Wokok VPN: вок на огне' : 'Wokok VPN: вок остыл');
+          .setToolTip(on ? 'Wokok Box: вок на огне' : 'Wokok Box: вок остыл');
       await trayManager.setContextMenu(Menu(items: [
         MenuItem(key: 'toggle', label: on ? 'Погасить' : 'Разжечь'),
         MenuItem.separator(),
@@ -95,7 +102,7 @@ class _WokokAppState extends State<WokokApp>
         if (mounted) setState(() => _locked = false);
         return;
       }
-      final ok = await auth.authenticate(localizedReason: 'Откройте Wokok VPN');
+      final ok = await auth.authenticate(localizedReason: 'Откройте Wokok Box');
       if (mounted) setState(() => _locked = !ok);
     } catch (_) {
       if (mounted) setState(() => _locked = false);
@@ -104,7 +111,7 @@ class _WokokAppState extends State<WokokApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState s) {
-    if (s == AppLifecycleState.paused && widget.vpn.settings.biometric) {
+    if (s == AppLifecycleState.paused && _vpn.settings.biometric) {
       setState(() => _locked = true);
     }
     if (s == AppLifecycleState.resumed && _locked) _unlock();
@@ -125,12 +132,13 @@ class _WokokAppState extends State<WokokApp>
   void onTrayMenuItemClick(MenuItem item) async {
     switch (item.key) {
       case 'toggle':
-        await widget.vpn.toggle();
+        await _vpn.toggle();
       case 'show':
         await windowManager.show();
         await windowManager.focus();
       case 'quit':
-        await widget.vpn.disconnect();
+        await widget.box.closeTunnel();
+        await _vpn.disconnect();
         await trayManager.destroy();
         exit(0);
     }
@@ -139,7 +147,7 @@ class _WokokAppState extends State<WokokApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    widget.vpn.removeListener(_refreshTray);
+    _vpn.removeListener(_refreshTray);
     if (_desktop) {
       windowManager.removeListener(this);
       trayManager.removeListener(this);
@@ -150,7 +158,7 @@ class _WokokAppState extends State<WokokApp>
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Wokok VPN',
+      title: 'Wokok Box',
       debugShowCheckedModeBanner: false,
       theme: wokTheme(),
       home: _locked
@@ -167,7 +175,19 @@ class _WokokAppState extends State<WokokApp>
                 ]),
               ),
             )
-          : Shell(vpn: widget.vpn),
+          : ListenableBuilder(
+              listenable: widget.box,
+              builder: (context, _) => switch (widget.box.audience) {
+                Audience.unset => AudiencePage(box: widget.box),
+                Audience.parents when _shared == null => ParentsHome(box: widget.box),
+                Audience.parents => GuardPage(
+                    box: widget.box,
+                    initialText: _shared,
+                    onHome: () => setState(() => _shared = null),
+                  ),
+                Audience.me => Shell(box: widget.box, sharedText: _shared),
+              },
+            ),
     );
   }
 }

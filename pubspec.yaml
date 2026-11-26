@@ -1,5 +1,5 @@
 name: wokok_vpn
-description: "Wokok VPN - your own unblockable VPN"
+description: "Wokok Box - your own VPN, tunnel, deploy, spy check and scam guard"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 2.0.0+2
 
 environment:
   sdk: ^3.7.2
@@ -45,6 +45,7 @@ dependencies:
   url_launcher: ^6.3.2
   path_provider: ^2.1.5
   http: ^1.6.0
+  dartssh2: ^4.1.0
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,7 @@ flutter:
 
   assets:
     - assets/brand/
+    - assets/box/
 
 flutter_launcher_icons:
   image_path: "assets/brand/logo.png"
