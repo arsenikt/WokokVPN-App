@@ -96,9 +96,9 @@ jobs:
           codesign --force --deep --sign - "$APP"
       - name: DMG
         run: |
-          mkdir dmg && cp -R build/macos/Build/Products/Release/wokok_vpn.app "dmg/Wokok VPN.app"
+          mkdir dmg && cp -R build/macos/Build/Products/Release/wokok_vpn.app "dmg/Wokok Box.app"
           ln -s /Applications dmg/Applications
-          hdiutil create -volname "Wokok VPN" -srcfolder dmg -ov -format UDZO WokokVPN-macos.dmg
+          hdiutil create -volname "Wokok Box" -srcfolder dmg -ov -format UDZO WokokVPN-macos.dmg
       - uses: actions/upload-artifact@v4
         with: { name: macos, path: WokokVPN-macos.dmg }
 
